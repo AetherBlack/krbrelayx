@@ -245,15 +245,14 @@ def get_next_serial(dnsserver, dc, zone, tcp):
         server = dc
    
 
-    # Is our host an IP? In that case make sure the server IP is used
-    # if not assume lookups are working already
+    # Try resolving first with the computer's DNS
+    # if not resolved, try with the server
     try:
-        socket.inet_aton(server)
+        res = dnsresolver.resolve(zone, 'SOA', tcp=tcp)
+    except dns.resolver.NXDOMAIN:
         dnsresolver.nameservers = [server]
-        
-    except socket.error:
-        pass
-    res = dnsresolver.resolve(zone, 'SOA',tcp=tcp)
+        res = dnsresolver.resolve(zone, 'SOA', tcp=tcp)
+
     for answer in res:
         return answer.serial + 1
 
